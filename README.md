@@ -12,13 +12,12 @@ This project demonstrates end-to-end development of a tabular machine learning c
 7. **Cloud Deployment & Experiment Tracking** – Deploy on AWS and log experiments with MLflow.
 
 ## Folder Structure
-project-root/
-├── data/             # Raw and processed datasets
-├── notebooks/        # Jupyter notebooks for EDA and experimentation
-├── src/              # Python modules for preprocessing, modeling, API
-├── models/           # Saved trained models (joblib/pickle)
-├── docker/           # Dockerfile and related assets
-└── README.md
+- `data/` – Raw and processed datasets  
+- `notebooks/` – Jupyter notebooks for EDA and experimentation  
+- `src/` – Python modules for preprocessing, modeling, API  
+- `models/` – Saved trained models (joblib/pickle)  
+- `docker/` – Dockerfile and related assets  
+- `README.md`  
 
 ## Requirements
 - Python 3.10+
