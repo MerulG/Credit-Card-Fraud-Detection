@@ -20,7 +20,7 @@ This project demonstrates end-to-end development of a tabular machine learning c
 - `README.md`  
 
 ## Requirements
-- Python 3.10+
+- Python 3.11.7
 - Pandas, NumPy, scikit-learn
 - FastAPI, Pydantic
 - MLflow
