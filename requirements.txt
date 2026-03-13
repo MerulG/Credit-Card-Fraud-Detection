@@ -30,6 +30,7 @@ gunicorn==25.1.0
 h11==0.16.0
 huey==2.6.0
 idna==3.11
+imbalanced-learn==0.13.0
 importlib_metadata==8.7.1
 itsdangerous==2.2.0
 Jinja2==3.1.6
