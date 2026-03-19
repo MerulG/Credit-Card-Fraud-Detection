@@ -1,27 +1,109 @@
-# Tabular ML Classification Project - Credit-Card-Fraud-Detection
+# Credit Card Fraud Detection
 
-## Overview
-This project demonstrates end-to-end development of a tabular machine learning classification pipeline using the Kaggle Credit Card Fraud Detection dataset. The workflow includes:
+A machine learning pipeline for detecting fraudulent credit card transactions, built on the [Kaggle Credit Card Fraud Detection dataset](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud).
 
-1. **Data Loading & EDA** – Basic exploratory analysis and summary statistics.
-2. **Feature Engineering** – Handling missing values, scaling, and categorical encoding.
-3. **Baseline & Advanced Models** – Logistic Regression, RandomForest, GradientBoosting.
-4. **Evaluation** – Metrics including ROC-AUC, precision, recall, and confusion matrix.
-5. **Model Deployment** – FastAPI service with input validation for predictions.
-6. **Containerization** – Dockerfile to build and run the API.
-7. **Cloud Deployment & Experiment Tracking** – Deploy on AWS and log experiments with MLflow.
+The dataset is highly imbalanced — only 0.17% of transactions are fraudulent — making this a realistic and challenging classification problem.
+
+## Pipeline
+
+1. **Preprocessing** — removes correlated features (Pearson > 0.85), stratified 80/20 train-test split
+2. **Class Imbalance** — SMOTE applied inside the pipeline to training folds only (no data leakage)
+3. **Model** — Random Forest classifier with StandardScaler
+4. **Hyperparameter Tuning** — RandomizedSearchCV with StratifiedKFold (5 folds, 20 candidates, scored on ROC-AUC)
+5. **Threshold Tuning** — optimal classification threshold selected by maximising F1 on the precision-recall curve
+6. **Feature Importance** — post-training analysis of which features drive fraud predictions
+
+## Results
+
+| Metric | Value |
+|---|---|
+| ROC-AUC | 0.978 |
+| Fraud Precision | 94% |
+| Fraud Recall | 79% |
+| F1 (fraud class) | 0.86 |
+| Optimal threshold | 0.856 |
+
+**Confusion matrix** (56,962 test transactions):
+```
+                Predicted: Not Fraud    Predicted: Fraud
+Actual: Not Fraud       56,859                5
+Actual: Fraud               21               77
+```
+21 fraudulent transactions missed, 5 false alarms.
+
+Threshold tuning (0.856 vs default 0.5) significantly reduced false alarms from 33 to 5 while keeping precision at 94%.
+
+**Best hyperparameters found:**
+- `n_estimators`: 237
+- `max_depth`: 30
+- `min_samples_leaf`: 10
+- `min_samples_split`: 2
+- `class_weight`: None (SMOTE alone sufficient)
+
+**Top feature importances:**
+
+| Feature | Importance |
+|---|---|
+| V14 | 18.2% |
+| V4 | 12.4% |
+| V12 | 10.6% |
+| V10 | 10.6% |
+| V17 | 8.2% |
+
+V14, V4, V12, V10, and V17 account for over 60% of the model's decisions. `Time` and `Amount` ranked near the bottom, suggesting the PCA-transformed features carry most of the fraud signal.
 
 ## Folder Structure
-- `data/` – Raw and processed datasets  
-- `notebooks/` – Jupyter notebooks for EDA and experimentation  
-- `src/` – Python modules for preprocessing, modeling, API  
-- `models/` – Saved trained models (joblib/pickle)  
-- `docker/` – Dockerfile and related assets  
-- `README.md`  
+
+```
+├── data/           Raw and processed datasets
+├── notebooks/      EDA notebook
+├── src/
+│   ├── preprocessing.py   Data loading, redundancy removal, train-test split
+│   ├── pipeline.py        Model pipeline (StandardScaler → SMOTE → RandomForest)
+│   ├── train.py           Training orchestration
+│   ├── tune.py            Hyperparameter tuning and threshold tuning
+│   └── evaluate.py        Metrics and feature importance
+├── models/         Saved models (joblib)
+└── docker/         Dockerfile
+```
+
+## Usage
+
+**Train with default settings:**
+```bash
+python -m src.train
+```
+
+**Train with hyperparameter tuning:**
+```bash
+python -m src.train --tune
+```
+
+**Evaluate a saved model with a specific threshold:**
+```bash
+python -m src.inference models/random_forest_pipeline_2026-03-19_22-00.joblib 0.856
+```
+```
+Threshold: 0.8560
+ROC-AUC: 0.9782
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     56864
+           1       0.94      0.79      0.86        98
+
+Confusion Matrix:
+ [[56859     5]
+ [   21    77]]
+```
+
+**Evaluate with auto-tuned threshold (computed from data):**
+```bash
+python -m src.inference models/random_forest_pipeline_2026-03-19_22-00.joblib
+```
 
 ## Requirements
-- Python 3.11.7
-- Pandas, NumPy, scikit-learn
-- FastAPI, Pydantic
-- MLflow
-- Docker
+
+- Python 3.11
+- scikit-learn, imbalanced-learn, scipy
+- pandas, numpy, joblib
