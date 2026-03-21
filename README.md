@@ -62,7 +62,8 @@ V14, V4, V12, V10, and V17 account for over 60% of the model's decisions. `Time`
 │   ├── pipeline.py        Model pipeline (StandardScaler → SMOTE → RandomForest)
 │   ├── train.py           Training orchestration
 │   ├── tune.py            Hyperparameter tuning and threshold tuning
-│   └── evaluate.py        Metrics and feature importance
+│   ├── evaluate.py        Metrics and feature importance
+│   └── api.py             FastAPI inference service
 ├── models/         Saved models (joblib)
 └── docker/         Dockerfile
 ```
@@ -102,8 +103,50 @@ Confusion Matrix:
 python -m src.inference models/random_forest_pipeline_2026-03-19_22-00.joblib
 ```
 
+## Inference API
+
+The FastAPI service loads the latest saved model on startup and exposes three endpoints.
+
+**Start the server:**
+```bash
+python src/api.py
+```
+
+Configuration via environment variables:
+- `MODELS_DIR` — directory to scan for `.joblib` files (default: `models`)
+- `FRAUD_THRESHOLD` — classification threshold (default: `0.856`)
+
+**Endpoints:**
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/health` | Returns model filename and threshold in use |
+| POST | `/predict` | Single transaction inference |
+| POST | `/predict_batch` | Batch inference (max 1000 records) |
+
+**Health check:**
+```bash
+curl http://localhost:8000/health
+```
+```json
+{"status": "ok", "model": "random_forest_pipeline_2026-03-19_22-00.joblib", "threshold": 0.856}
+```
+
+**Single prediction:**
+```bash
+curl -s -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"Time": 406.0, "V1": -1.36, "V2": -0.07, ..., "Amount": 149.62}'
+```
+```json
+{"fraud_probability": 0.012, "prediction": 0, "threshold_used": 0.856}
+```
+
+Request fields: `Time`, `V1`–`V28`, `Amount` (all `float`).
+
 ## Requirements
 
 - Python 3.11
 - scikit-learn, imbalanced-learn, scipy
 - pandas, numpy, joblib
+- fastapi, uvicorn
