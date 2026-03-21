@@ -1,5 +1,5 @@
 import os
-import numpy as np
+import pandas as pd
 import joblib
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -104,8 +104,8 @@ class FraudFeatures(BaseModel):
 FEATURE_ORDER = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
 
 
-def features_to_array(features: FraudFeatures) -> np.ndarray:
-    return np.array([[getattr(features, f) for f in FEATURE_ORDER]])
+def features_to_array(features: FraudFeatures) -> pd.DataFrame:
+    return pd.DataFrame([[getattr(features, f) for f in FEATURE_ORDER]], columns=FEATURE_ORDER)
 
 
 @app.get("/health")
@@ -129,7 +129,7 @@ def predict_batch(records: list[FraudFeatures]):
     if len(records) > 1000:
         raise HTTPException(status_code=400, detail="Batch size exceeds maximum of 1000 records")
     try:
-        arr = np.vstack([features_to_array(r) for r in records])
+        arr = pd.concat([features_to_array(r) for r in records], ignore_index=True)
         probs = state["pipeline"].predict_proba(arr)[:, 1]
         threshold = state["threshold"]
         results = []

@@ -55,7 +55,8 @@ V14, V4, V12, V10, and V17 account for over 60% of the model's decisions. `Time`
 ## Folder Structure
 
 ```
-├── data/           Raw and processed datasets
+├── data/
+│   └── creditcard.csv     Raw dataset (gitignored)
 ├── notebooks/      EDA notebook
 ├── src/
 │   ├── preprocessing.py   Data loading, redundancy removal, train-test split
@@ -63,9 +64,11 @@ V14, V4, V12, V10, and V17 account for over 60% of the model's decisions. `Time`
 │   ├── train.py           Training orchestration
 │   ├── tune.py            Hyperparameter tuning and threshold tuning
 │   ├── evaluate.py        Metrics and feature importance
-│   └── api.py             FastAPI inference service
+│   ├── api.py             FastAPI inference service
+│   └── test_api.py        Manual API smoke tests
 ├── models/         Saved models (joblib)
-└── docker/         Dockerfile
+├── Dockerfile
+└── .dockerignore
 ```
 
 ## Usage
@@ -143,6 +146,25 @@ curl -s -X POST http://localhost:8000/predict \
 ```
 
 Request fields: `Time`, `V1`–`V28`, `Amount` (all `float`).
+
+## Docker
+
+**Build:**
+```bash
+docker build -t fraud-detection .
+```
+
+**Run:**
+```bash
+docker run -p 8000:8000 fraud-detection
+```
+
+Override defaults via environment variables:
+```bash
+docker run -p 8000:8000 -e FRAUD_THRESHOLD=0.9 fraud-detection
+```
+
+The image runs as a non-root user (`appuser`). The `data/` directory and notebooks are excluded from the image via `.dockerignore` — only `src/` and `models/` are copied in.
 
 ## Requirements
 

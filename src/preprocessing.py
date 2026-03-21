@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 def load_data():
     notebook_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(notebook_dir, "..", "data", "raw", "creditcard.csv")
+    data_path = os.path.join(notebook_dir, "..", "data", "creditcard.csv")
     return pd.read_csv(data_path)
 
 def data_redundancy(data):
