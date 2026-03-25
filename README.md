@@ -166,9 +166,34 @@ docker run -p 8000:8000 -e FRAUD_THRESHOLD=0.9 fraud-detection
 
 The image runs as a non-root user (`appuser`). The `data/` directory and notebooks are excluded from the image via `.dockerignore` — only `src/` and `models/` are copied in.
 
+## Experiment Tracking
+
+Runs are tracked with MLflow under the `credit-card-fraud-detection` experiment.
+
+**Train and record a run:**
+```bash
+python -m src.train
+python -m src.train --tune
+```
+
+**View all runs in the UI:**
+```bash
+mlflow ui
+# open http://127.0.0.1:5000
+```
+
+Each run logs:
+- **Tags:** `tuned` (true/false), `smote` (true)
+- **Params:** `n_features_input`, RF hyperparameters, `threshold`
+- **Metrics:** `roc_auc`, `fraud_precision`, `fraud_recall`, `fraud_f1`, `nonfraud_precision`, `nonfraud_recall`, `nonfraud_f1`, `accuracy`
+- **Artifact:** the saved `.joblib` model file
+
+MLflow run data is stored locally in `mlruns/` (gitignored).
+
 ## Requirements
 
 - Python 3.11
 - scikit-learn, imbalanced-learn, scipy
 - pandas, numpy, joblib
 - fastapi, uvicorn
+- mlflow
