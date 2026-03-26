@@ -2,8 +2,7 @@
 
 A machine learning pipeline for detecting fraudulent credit card transactions, built on the [Kaggle Credit Card Fraud Detection dataset](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud).
 
-The dataset is highly imbalanced — only 0.17% of transactions are fraudulent — making this a realistic and challenging classification problem.
-
+The dataset is highly imbalanced — only 0.17% of transactions are fraudulent
 ## Pipeline
 
 1. **Preprocessing** — removes correlated features (Pearson > 0.85), stratified 80/20 train-test split
